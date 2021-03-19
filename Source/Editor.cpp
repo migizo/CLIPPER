@@ -28,7 +28,7 @@
 
 //==============================================================================
 Editor::Editor (CLIPPERAudioProcessor& p)
-    : AudioProcessorEditor(&p), processor(p)
+    : AudioProcessorEditor(p), processor(p), valueTreeState(p.parameters)
 {
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
@@ -54,24 +54,44 @@ Editor::Editor (CLIPPERAudioProcessor& p)
     cachedImage_bg1_png_1 = juce::ImageCache::getFromMemory (bg1_png, bg1_pngSize);
 
     //[UserPreSize]
+    boostKnob->setLookAndFeel(&knob);
+    boostKnob->setTextValueSuffix("%");
+    volumeKnob->setLookAndFeel(&knob);
+
+    // IDで紐付けされてる
+    boostAttachment.reset(new KnobAttachment(valueTreeState, "BOOST", *boostKnob.get()));
+    volumeAttachment.reset(new KnobAttachment(valueTreeState, "VOLUME", *volumeKnob.get()));
     //[/UserPreSize]
 
     setSize (340, 280);
 
 
     //[Constructor] You can add your own custom stuff here..
-    boostKnob->setLookAndFeel(&knob);
-    boostKnob->setTextValueSuffix("%");
-    boostKnob->setValue(50.0/* % */);
-    volumeKnob->setLookAndFeel(&knob);
-    volumeKnob->setValue(0.5);
 
+
+    /*
+    for (int i = 0; i < processor.getParameters().size(); i++) {
+        Parameter* param = (Parameter*)processor.getParameters().getReference(i);
+
+        juce::Slider* knob;
+        if (i == 0) knob = boostKnob.get();
+        else knob = volumeKnob.get();
+
+        param->setMin(knob->getMinValue());
+        param->setMax(knob->getMaxValue());
+        param->setDefault(i == 0 ? 50.0 : 0.5);
+        param->setValueNotifyingHost(i == 0 ? 50.0 : 0.5);
+        knob->setValue((double)param->getDefaultValue(), juce::dontSendNotification);
+    }
+    */
     //[/Constructor]
 }
 
 Editor::~Editor()
 {
     //[Destructor_pre]. You can add your own custom destruction code here..
+    boostAttachment = nullptr;
+    volumeAttachment = nullptr;
     //[/Destructor_pre]
 
     boostKnob = nullptr;
@@ -122,13 +142,11 @@ void Editor::sliderValueChanged (juce::Slider* sliderThatWasMoved)
     if (sliderThatWasMoved == boostKnob.get())
     {
         //[UserSliderCode_boostKnob] -- add your slider handling code here..
-        processor.boost = boostKnob->getValue();
         //[/UserSliderCode_boostKnob]
     }
     else if (sliderThatWasMoved == volumeKnob.get())
     {
         //[UserSliderCode_volumeKnob] -- add your slider handling code here..
-        processor.volume = volumeKnob->getValue();
         //[/UserSliderCode_volumeKnob]
     }
 
@@ -139,6 +157,7 @@ void Editor::sliderValueChanged (juce::Slider* sliderThatWasMoved)
 
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
+
 //[/MiscUserCode]
 
 
@@ -153,7 +172,7 @@ BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="Editor" componentName=""
                  parentClasses="public juce::AudioProcessorEditor" constructorParams="CLIPPERAudioProcessor&amp; p"
-                 variableInitialisers="AudioProcessorEditor(&amp;p), processor(p)"
+                 variableInitialisers="AudioProcessorEditor(p), processor(p), valueTreeState(p.parameters)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
                  fixedSize="1" initialWidth="340" initialHeight="280">
   <BACKGROUND backgroundColour="ff323e44">

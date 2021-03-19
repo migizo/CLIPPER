@@ -53,10 +53,13 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    
-    double boost;
-    double volume;
+    juce::AudioProcessorValueTreeState parameters;
 private:
+    
+    // atomic: 複数のスレッドから参照されてもok, 
+    std::atomic<float>* boostParameter = nullptr;
+    std::atomic<float>* volumeParameter = nullptr;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CLIPPERAudioProcessor)
 };

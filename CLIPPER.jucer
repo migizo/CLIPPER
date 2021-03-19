@@ -3,7 +3,8 @@
 <JUCERPROJECT id="kvTgN5" name="CLIPPER" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" bundleIdentifier="com.revista.clipper"
               pluginManufacturer="REVISTA" pluginManufacturerCode="RVST" pluginCode="Clip"
-              pluginFormats="buildAU,buildVST3" aaxIdentifier="com.revista.clipper">
+              pluginFormats="buildAU,buildVST3" aaxIdentifier="com.revista.clipper"
+              pluginAUIsSandboxSafe="1">
   <MAINGROUP id="oWsCgP" name="CLIPPER">
     <GROUP id="{CE07A208-3C54-8451-5489-D7A52EB11A55}" name="Knob">
       <FILE id="clUSgq" name="Knob.cpp" compile="1" resource="0" file="Source/Knob.cpp"/>

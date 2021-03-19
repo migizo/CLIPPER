@@ -23,6 +23,9 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "Knob.h"
+
+typedef juce::AudioProcessorValueTreeState::SliderAttachment KnobAttachment;
+
 //[/Headers]
 
 
@@ -60,8 +63,12 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
-    CLIPPERAudioProcessor& processor;
     Knob knob;
+    CLIPPERAudioProcessor& processor;
+    juce::AudioProcessorValueTreeState& valueTreeState;
+    std::unique_ptr<KnobAttachment> boostAttachment;
+    std::unique_ptr<KnobAttachment> volumeAttachment;
+
     //[/UserVariables]
 
     //==============================================================================
