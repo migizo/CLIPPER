@@ -27,8 +27,8 @@ CLIPPERAudioProcessor::CLIPPERAudioProcessor()
         // processor, undoManager, valueTreeType, parameterLayout
         parameters(*this, nullptr, juce::Identifier(JucePlugin_Name),
         {
-            std::make_unique<juce::AudioParameterFloat>(TRANS("BOOST"), TRANS("BOOST"), juce::NormalisableRange<float>(0.0, 100.0, 0.1), 50.0f),
-            std::make_unique<juce::AudioParameterFloat>(TRANS("VOLUME"), TRANS("VOLUME"), juce::NormalisableRange<float>(0.0, 1.0, 0.01), 0.5f)
+            std::make_unique<juce::AudioParameterFloat>(TRANS("BOOST"), TRANS("BOOST"), juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f), 50.0f),
+            std::make_unique<juce::AudioParameterFloat>(TRANS("VOLUME"), TRANS("VOLUME"), juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f)
         })
 {
 
@@ -151,6 +151,11 @@ bool CLIPPERAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
 void CLIPPERAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
 
+    static bool lastIsPlaying;
+    juce::AudioPlayHead::CurrentPositionInfo info;
+    getPlayHead()->getCurrentPosition(info);
+    bool isPlaying = info.isPlaying;
+    
     //float boost = getParameters().getReference(0)->getValue();
     //float volume = getParameters().getReference(1)->getValue();
     float boost = *boostParameter;
@@ -171,14 +176,32 @@ void CLIPPERAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
 
         for (int i = 0; i < bufferSize; i++) {
             
+            if (lastIsPlaying != isPlaying) {
+                // play
+                if (isPlaying) {
+                    animator.start(100, 0.0, 1.0);
+                }
+                // stop
+                else {
+                    animator.start(100, 1.0, 0.0);
+                }
+            }
+            animator.update();
+    
             // boostをthresholdとして
-            double inBuf = channelData[i];
-            double ab = juce::jmap(abs(inBuf), 0.0, 1.0 - pow(boost/100.0, 1.0/4.0), 0.0, (double)volume); // TODO: clamp
-            inBuf = ab * (inBuf > 0 ? 1 : -1);
-        
+            double original = channelData[i];
+            double inBuf = original;
+            double power = 0.25;
+            double ab = juce::jmap(abs(inBuf), 0.0, 1.0 - pow(boost/100.0, power), 0.0, 0.99); // TODO: clamp
+            ab = juce::jmin(1.0, juce::jmax(0.0, ab));
+            inBuf = ab * (inBuf > 0.0 ? 1.0 : -1.0);
+            inBuf *= volume;
+            inBuf = (1.0 - animator.getValue()) * original + animator.getValue() * inBuf;
             channelData[i] = inBuf;
         }
     }
+    
+    lastIsPlaying = isPlaying;
 }
 
 //==============================================================================

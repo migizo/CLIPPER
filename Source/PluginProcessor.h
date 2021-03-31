@@ -9,6 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "AnimatorByCount.h"
 
 //==============================================================================
 /**
@@ -55,6 +56,7 @@ public:
 
     juce::AudioProcessorValueTreeState parameters;
 private:
+    AnimatorByCount animator;
     
     // atomic: 複数のスレッドから参照されてもok, 
     std::atomic<float>* boostParameter = nullptr;
